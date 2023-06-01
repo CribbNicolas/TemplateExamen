@@ -1,53 +1,80 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Card from './components/Card'
-
-const cardItems = [
-  {
-    name: "Primer carddd",
-    color: "red",
-  },
-  {
-    name: "Second cardddd",
-    color: "blue",
-  }
-]
-
-const defaultCustomCard = {
-  name: "Card manejada por Hook",
-  color: "yellow"
-}
+import PokemonsViewer from './components/PokemonsViewer/PokemonsViewer'
+import Layout from './Layout'
+import css from './App.module.css'
+import PokemonCard from './components/Card/PokemonCard'
 
 function App() {
-  const [customCard, setCustomCard] = useState(defaultCustomCard)
-
-  const cambiarNombre = (e) => {
-      setCustomCard(prevState => ({...prevState, name: e.target.value}))
+  const [openPokemonViewer, setOpenPokemonViewer] = useState(false)
+  const [pokemonsData , setPokemonsData] = useState([])
+  const handleOpenPokemonViewer = () => {
+    setOpenPokemonViewer(openPokemonViewer => !openPokemonViewer)
   }
-    
-  const cambiarColor = (e) => {
-      setCustomCard(prevState => ({...prevState, color: e.target.value}))
+
+  const [suscription, setSuscription] = useState(undefined)
+  const [errorForm, setErrorForm] = useState(false)
+
+  const submitInscription = (e) => {
+    e.preventDefault()
+    let error = ""
+    const name = e.target.name.value
+    if(name.length < 3){
+      error = "El nombre debe tener al menos 3 caracteres. "
+    }
+    const pokemons = pokemonsData
+    if(pokemons.length < 1){
+      error += "Debe seleccionar algun pokemon"
+    }
+    const suscription = {name, pokemons}
+    if(error === "") setSuscription(suscription)
+    else setErrorForm(error)
+  }
+
+  const pokemonsHandle = (pokemons) => {
+    setPokemonsData(pokemons)
   }
 
   return (
-    <>
-      <p>Cambiando el nombre:</p>
-      <input onChange={cambiarNombre} defaultValue={defaultCustomCard.name} />
+    <Layout title={"Pokemons"}>
+      {!suscription && <div style={{width: "100%"}}>
+        <h2>
+          Inscribite al duelo pokemon
+        </h2>
+        
+        <form onSubmit={submitInscription}>
+          <label htmlFor="name">Name</label>
+          <input type="text" id="name" />
+          <label htmlFor="color">Pokemons</label>
+          <button type="button" onClick={handleOpenPokemonViewer}>Seleccionar Pokemons</button>
+          <p>
+            Pokemons seleccionados:
+          </p>
+          <div style={{display: "flex", gap: "10px"}}>
+            {pokemonsData.map(pokemon => 
+            <PokemonCard data={pokemon} />
+            )}
+          </div>
+          <button type="submit">Submit</button>
+        </form>
 
-      <p>Cambiando el color:</p>
-      <input onChange={cambiarColor} defaultValue={defaultCustomCard.color}/>
+        <h4 style={{color: "var(--color-error)"}}>{errorForm}</h4>
+      </div>}
 
-      {cardItems.map((item) => 
-        <Card key={item.name} item={item}>
-          <h1>Este es el titulo insertado por children</h1>
-        </Card>
-      )}
-      <Card item={customCard}>
-      <h1>Este es el titulo insertado por children</h1>
-      </Card>
-    </>
+        {suscription && <div>
+          <h2 style={{color: "var(--color-success)"}}>
+            Felicitaciones!, esta es tu ficha de inscripcion:
+          </h2>
+          <h3>Nombre: {suscription.name}</h3>
+          <div style={{display: "flex", gap: "10px"}}>
+            {suscription.pokemons.map(pokemon => 
+            <PokemonCard data={pokemon} />
+            )}
+          </div>
+        </div>}
+        
+
+      <PokemonsViewer open={openPokemonViewer} setOpen={handleOpenPokemonViewer} pokemonsHandle={pokemonsHandle}/>
+    </Layout>
   )
 }
 
